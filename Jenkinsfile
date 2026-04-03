@@ -11,7 +11,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/YOUR_USERNAME/python-k8s-app.git'
+                git 'https://github.com/yadavprashant510/fastapi-k8s-app.git'
             }
         }
 
