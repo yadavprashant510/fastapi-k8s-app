@@ -17,6 +17,7 @@ pipeline {
         }
 
         stage('Docker Build & Push') {
+            agent any
             steps {
                 sh 'docker ps'
 
