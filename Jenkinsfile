@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none   // 👈 IMPORTANT
 
     environment {
         REGISTRY = "localhost:5000"
@@ -10,34 +10,39 @@ pipeline {
     stages {
 
         stage('Checkout') {
+            agent any
             steps {
                 git branch: 'main', url: 'https://github.com/yadavprashant510/fastapi-k8s-app.git'
             }
         }
-        stage('Test Docker') {
+
+        stage('Docker Build & Push') {
+            agent {
+                docker {
+                    image 'docker:24.0.5'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock'
+                }
+            }
             steps {
                 sh 'docker ps'
-            }
-        }
 
-        stage('Build Docker Image') {
-            steps {
                 sh """
                 docker build -t $REGISTRY/$IMAGE_NAME:$TAG .
-                """
-            }
-        }
-
-        stage('Push to Local Registry') {
-            steps {
-                sh """
                 docker push $REGISTRY/$IMAGE_NAME:$TAG
                 """
             }
         }
 
         stage('Deploy to Kubernetes') {
+            agent {
+                docker {
+                    image 'bitnami/kubectl:latest'
+                    args '-v ~/.kube:/root/.kube'
+                }
+            }
             steps {
+                sh 'kubectl get nodes'
+
                 sh """
                 kubectl apply -f k8s/deployment.yaml
                 kubectl apply -f k8s/service.yaml
@@ -46,6 +51,12 @@ pipeline {
         }
 
         stage('Verify Deployment') {
+            agent {
+                docker {
+                    image 'bitnami/kubectl:latest'
+                    args '-v ~/.kube:/root/.kube'
+                }
+            }
             steps {
                 sh "kubectl get pods"
                 sh "kubectl get svc"
