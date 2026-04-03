@@ -12,6 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/yadavprashant510/fastapi-k8s-app.git'
+            }
         }
 
         stage('Build Docker Image') {
